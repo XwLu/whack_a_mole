@@ -8,10 +8,10 @@
 
 // ============== 配置参数 ==============
 const int MAX_MOLES = 5;              // 最大地鼠数量
-const unsigned long GAME_DURATION = 90000;       // 游戏持续时间（毫秒）
+const unsigned long GAME_DURATION = 60000;       // 游戏持续时间（毫秒）
 const unsigned long INITIAL_MOLE_TIME = 4000;    // 初始地鼠显示时间（毫秒）
-const unsigned long MIN_MOLE_TIME = 2000;        // 最小地鼠显示时间（毫秒）
-const unsigned long TIME_REDUCTION_PERIOD = 70000; // 时间缩短周期（毫秒，30秒内从初始时间缩短到最小时间）
+const unsigned long MIN_MOLE_TIME = 3000;        // 最小地鼠显示时间（毫秒）
+const unsigned long TIME_REDUCTION_PERIOD = 60000; // 时间缩短周期（毫秒，60秒内从初始时间缩短到最小时间）
 
 // TM1637数码管配置
 const int DISPLAY_CLK_PIN = 6;  // TM1637 CLK引脚
@@ -84,7 +84,7 @@ void resetGame() {
   // 打印复位信息
   Serial.println("Ready");
   
-  // 不再自动开始游戏，等待玩家按下任意按钮
+  // 不再自动开始游戏，等待玩家按下任意2个按钮
   delay(3000);
 }
 
@@ -133,7 +133,7 @@ void checkMoleButtons() {
   // 检查当前活跃的地鼠按钮
   if (currentMoleIndex >= 0 && currentMoleIndex < MAX_MOLES) {
     // 直接读取对应地鼠的按钮引脚状态
-    bool buttonPressed = moleManager.isButtonPressed(currentMoleIndex);
+    bool buttonPressed = moleManager.isButtonPressedWithoutDelay(currentMoleIndex);
     
     if (buttonPressed) {
       // 玩家成功打到地鼠
@@ -147,8 +147,8 @@ void checkMoleButtons() {
       // 关闭当前地鼠LED
       moleManager.turnOffLed(currentMoleIndex);
       
-      // 成功击中后延迟0.5秒
-      delay(500);
+      // 成功击中后延迟2秒
+      delay(2000);
       
       // 显示下一个地鼠
       showNextMole();
@@ -181,13 +181,13 @@ void loop() {
   // 检查是否有3个或更多地鼠按钮被同时按下（复位功能）
   if (moleManager.checkResetCondition()) {
     resetGame();
-    delay(200);  // 消抖
+    delay(3000);  // 重置后3s内不允许开始
   }
   
   // 游戏未运行时（等待开始）
   if (!gameRunning) {
-    // 检查是否有任意按钮按下以开始游戏
-    if (moleManager.isAnyButtonPressed()) {
+    // 检查是否有任意2个以上按钮按下以开始游戏
+    if (moleManager.checkStartCondition()) {
       // 打印游戏开始信息
       Serial.println("Go");
       // 延迟0.5秒开始游戏
@@ -205,7 +205,7 @@ void loop() {
     // 检查游戏时间是否结束
     if (millis() - gameStartTime > GAME_DURATION) {
       endGame();
-      return;
+      delay(3000);  // 结束后3s内不允许开始
     }
     
     // 检查当前地鼠是否超时

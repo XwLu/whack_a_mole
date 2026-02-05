@@ -43,7 +43,7 @@ void MoleManager::turnOffLed(int moleIndex) {
 }
 
 // 检测指定地鼠的按钮是否被按下
-bool MoleManager::isButtonPressed(int moleIndex) {
+bool MoleManager::isButtonPressedWithDelay(int moleIndex) {
   if (moleIndex >= 0 && moleIndex < _maxMoles) {
     bool pressed = digitalRead(_buttonPins[moleIndex]) == LOW;
     if (pressed) {
@@ -57,14 +57,31 @@ bool MoleManager::isButtonPressed(int moleIndex) {
   return false;
 }
 
-// 检测是否有任意一个地鼠按钮被按下
-bool MoleManager::isAnyButtonPressed() {
-  for (int i = 0; i < _maxMoles; i++) {
-    if (isButtonPressed(i)) {
-      return true;
-    }
+// 检测指定地鼠的按钮是否被按下（无去抖）
+bool MoleManager::isButtonPressedWithoutDelay(int moleIndex) {
+  if (moleIndex >= 0 && moleIndex < _maxMoles) {
+    return digitalRead(_buttonPins[moleIndex]) == LOW;
   }
   return false;
+}
+
+// 检测是否有2个或更多地鼠按钮被同时按下（开始条件）
+bool MoleManager::checkStartCondition() {
+  int pressedCount = 0;
+  
+  // 统计被按下的按钮数量
+  for (int i = 0; i < _maxMoles; i++) {
+    if (isButtonPressedWithDelay(i)) {
+      pressedCount++;
+      
+      // 优化：如果已经检测到3个按下的按钮，提前返回
+      if (pressedCount >= 2) {
+        return true;
+      }
+    }
+  }
+  
+  return pressedCount >= 2;
 }
 
 // 检测是否有3个或更多地鼠按钮被同时按下（复位条件）
@@ -73,11 +90,12 @@ bool MoleManager::checkResetCondition() {
   
   // 统计被按下的按钮数量
   for (int i = 0; i < _maxMoles; i++) {
-    if (isButtonPressed(i)) {
+    if (isButtonPressedWithoutDelay(i)) {
       pressedCount++;
       
       // 优化：如果已经检测到3个按下的按钮，提前返回
-      if (pressedCount >= 2) {
+      if (pressedCount >= 3) {
+        delay(200);  // 去抖
         return true;
       }
     }

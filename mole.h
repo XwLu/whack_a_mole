@@ -22,10 +22,12 @@ public:
   void turnOffLed(int moleIndex);
   
   // 检测指定地鼠的按钮是否被按下
-  bool isButtonPressed(int moleIndex);
+  bool isButtonPressedWithDelay(int moleIndex);
+
+  bool isButtonPressedWithoutDelay(int moleIndex);
   
   // 检测是否有任意一个地鼠按钮被按下
-  bool isAnyButtonPressed();
+  bool checkStartCondition();
   
   // 检测是否有3个或更多地鼠按钮被同时按下（复位条件）
   bool checkResetCondition();
