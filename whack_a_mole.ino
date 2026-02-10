@@ -9,8 +9,8 @@
 // ============== 配置参数 ==============
 const int MAX_MOLES = 5;              // 最大地鼠数量
 const unsigned long GAME_DURATION = 60000;       // 游戏持续时间（毫秒）
-const unsigned long INITIAL_MOLE_TIME = 4000;    // 初始地鼠显示时间（毫秒）
-const unsigned long MIN_MOLE_TIME = 3000;        // 最小地鼠显示时间（毫秒）
+const unsigned long INITIAL_MOLE_TIME = 5000;    // 初始地鼠显示时间（毫秒）
+const unsigned long MIN_MOLE_TIME = 4000;        // 最小地鼠显示时间（毫秒）
 const unsigned long TIME_REDUCTION_PERIOD = 60000; // 时间缩短周期（毫秒，60秒内从初始时间缩短到最小时间）
 
 // TM1637数码管配置
@@ -147,8 +147,8 @@ void checkMoleButtons() {
       // 关闭当前地鼠LED
       moleManager.turnOffLed(currentMoleIndex);
       
-      // 成功击中后延迟2秒
-      delay(2000);
+      // 成功击中后延迟0.5秒
+      delay(500);
       
       // 显示下一个地鼠
       showNextMole();
@@ -190,6 +190,7 @@ void loop() {
     if (moleManager.checkStartCondition()) {
       // 打印游戏开始信息
       Serial.println("Go");
+      score = 0;
       // 延迟0.5秒开始游戏
       delay(500);
       // 开始游戏
@@ -202,12 +203,6 @@ void loop() {
   }
   // 游戏运行中
   else {
-    // 检查游戏时间是否结束
-    if (millis() - gameStartTime > GAME_DURATION) {
-      endGame();
-      delay(3000);  // 结束后3s内不允许开始
-    }
-    
     // 检查当前地鼠是否超时
     if (millis() - currentMoleStartTime > currentMoleDisplayTime) {
       showNextMole();
@@ -215,5 +210,11 @@ void loop() {
     
     // 检查地鼠按钮
     checkMoleButtons();
+
+    // 检查游戏时间是否结束(放在loop的最后，这样结束后不会再执行额外逻辑)
+    if (millis() - gameStartTime > GAME_DURATION) {
+      endGame();
+      delay(3000);  // 结束后3s内不允许开始
+    }
   }
 }
